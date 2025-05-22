@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>¡Recicla y Gana! - Juego Super Divertido</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Fredoka One', cursive;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 2.2rem;
+            text-shadow: 3px 3px 0 #2980b9;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            color: #2c3e50;
+            background-color: #ecf0f1;
+            padding: 12px;
+            border-radius: 50px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .item-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 180px;
+            margin-bottom: 30px;
+            position: relative;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .item {
+            max-width: 100px;
+            max-height: 100px;
+            width: auto;
+            height: auto;
+            cursor: pointer;
+            transition: all 0.3s;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .bins-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .bin {
+            width: 100px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            transform-style: preserve-3d;
+        }
+
+        .bin:hover {
+            transform: translateY(-10px) rotateY(10deg);
+        }
+
+        .bin::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+
+        .bin-green {
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
+        }
+
+        .bin-gray {
+            background: linear-gradient(to bottom, #95a5a6, #7f8c8d);
+        }
+
+        .bin-red {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+        }
+
+        .bin-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+        }
+
+        .bin-label {
+            width: 100%;
+            padding: 8px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .bin-hole {
+            width: 70px;
+            height: 90px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 5px 5px 0 0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-height: 40px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            border: 2px dashed #27ae60;
+        }
+
+        .incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 2px dashed #e74c3c;
+        }
+
+        .next-btn {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.4);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .next-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(41, 128, 185, 0.6);
+        }
+
+        .next-btn:active {
+            transform: translateY(1px);
+        }
+
+        .next-btn:disabled {
+            background: linear-gradient(to right, #bdc3c7, #95a5a6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            height: 12px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(to right, #3498db, #9b59b6);
+            width: 0%;
+            transition: width 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                          rgba(255,255,255,0) 0%, 
+                          rgba(255,255,255,0.8) 50%, 
+                          rgba(255,255,255,0) 100%);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .game-over {
+            text-align: center;
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            animation: zoomIn 0.5s;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .game-over h2 {
+            color: #e74c3c;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-shadow: 2px 2px 0 #f1c40f;
+        }
+
+        .final-stats {
+            margin: 20px 0;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        .restart-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.6);
+        }
+
+        .timer-container {
+            width: 100%;
+            height: 15px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(to right, #f1c40f, #e74c3c);
+            width: 100%;
+            transition: width 0.1s linear;
+            border-radius: 10px;
+        }
+
+        .difficulty-indicator {
+            font-size: 1rem;
+            color: white;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .easy {
+            background-color: #2ecc71;
+        }
+
+        .medium {
+            background-color: #f39c12;
+        }
+
+        .hard {
+            background-color: #e74c3c;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .bin {
+                width: 85px;
+                height: 130px;
+            }
+            
+            .bin-icon {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .item {
+                max-width: 80px;
+                max-height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>¡RECICLA Y GANA! ♻️</h1>
+    
+    <div class="difficulty-indicator easy" id="difficultyIndicator">Nivel: FÁCIL</div>
+    <div class="timer-container">
+        <div class="timer-bar" id="timerBar"></div>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="game-container" id="gameContainer">
+        <div class="score-container">
+            <div>⭐ <span id="score">0</span></div>
+            <div>🏆 <span id="highScore">0</span></div>
+            <div>🔷 <span id="level">1</span></div>
+        </div>
+        
+        <div class="item-container">
+            <img id="currentItem" class="item" src="" alt="Objeto a clasificar">
+        </div>
+        
+        <div class="feedback" id="feedback">¡Elige el contenedor correcto!</div>
+        
+        <div class="bins-container">
+            <div class="bin bin-green" data-type="organic">
+                <div class="bin-hole">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3392/3392952.png" class="bin-icon" alt="Orgánico">
+                </div>
+                <div class="bin-label">ORGÁNICO</div>
+            </div>
+            <div class="bin bin-gray" data-type="recyclable">
+                <div class="bin-hole">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3392/3392915.png" class="bin-icon" alt="Reciclable">
+                </div>
+                <div class="bin-label">RECICLABLE</div>
+            </div>
+            <div class="bin bin-red" data-type="trash">
+                <div class="bin-hole">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3392/3392945.png" class="bin-icon" alt="Basura">
+                </div>
+                <div class="bin-label">BASURA</div>
+            </div>
+        </div>
+        
+        <button class="next-btn" id="nextBtn" disabled>SIGUIENTE ➡️</button>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <h2>¡JUEGO TERMINADO!</h2>
+        <div class="final-stats">
+            <p>🏅 Puntuación final: <span id="finalScore">0</span></p>
+            <p>📊 Nivel alcanzado: <span id="finalLevel">1</span></p>
+        </div>
+        <button class="restart-btn" id="restartBtn">JUGAR DE NUEVO 🔄</button>
+    </div>
+
+    <script>
+        // Datos del juego con imágenes locales
+        const items = {
+            easy: [
+                { name: "Manzana", image: "assets/manzana.png", type: "organic" },
+                { name: "Botella plástica", image: "assets/botella.png", type: "recyclable" },
+                { name: "Hoja de papel", image: "assets/papel.png", type: "recyclable" },
+                { name: "Cáscara plátano", image: "assets/platano.png", type: "organic" },
+                { name: "Lata aluminio", image: "assets/lata.png", type: "recyclable" }
+            ],
+            medium: [
+                { name: "Vidrio", image: "assets/vidrio.png", type: "recyclable" },
+                { name: "Caja cartón", image: "assets/carton.png", type: "recyclable" },
+                { name: "Restos comida", image: "assets/comida.png", type: "organic" },
+                { name: "Bolsa plástico", image: "assets/bolsa.png", type: "trash" },
+                { name: "Cáscara huevo", image: "assets/huevo.png", type: "organic" }
+            ],
+            hard: [
+                { name: "Pañal", image: "assets/panal.png", type: "trash" },
+                { name: "Pila", image: "assets/pila.png", type: "trash" },
+                { name: "Chicle", image: "assets/chicle.png", type: "trash" },
+                { name: "Papel aluminio", image: "assets/aluminio.png", type: "trash" },
+                { name: "Periódico", image: "assets/periodico.png", type: "recyclable" }
+            ]
+        };
+
+        // Variables del juego
+        let score = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let level = 1;
+        let currentDifficulty = 'easy';
+        let currentItem = null;
+        let itemsCorrect = 0;
+        let gameActive = true;
+        let timer;
+        let timeLeft;
+        let totalTime;
+        let itemsPerLevel = 5;
+
+        // Elementos del DOM
+        const currentItemElement = document.getElementById('currentItem');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const levelElement = document.getElementById('level');
+        const feedbackElement = document.getElementById('feedback');
+        const nextBtn = document.getElementById('nextBtn');
+        const gameContainer = document.getElementById('gameContainer');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalLevelElement = document.getElementById('finalLevel');
+        const progressBar = document.getElementById('progressBar');
+        const timerBar = document.getElementById('timerBar');
+        const difficultyIndicator = document.getElementById('difficultyIndicator');
+        const bins = document.querySelectorAll('.bin');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Inicializar el juego
+        function initGame() {
+            score = 0;
+            level = 1;
+            itemsCorrect = 0;
+            gameActive = true;
+            currentDifficulty = 'easy';
+            
+            scoreElement.textContent = score;
+            highScoreElement.textContent = highScore;
+            levelElement.textContent = level;
+            updateProgressBar();
+            updateDifficultyIndicator();
+            
+            gameContainer.style.display = 'block';
+            gameOverElement.style.display = 'none';
+            
+            showRandomItem();
+            startTimer();
+        }
+
+        // Mostrar un ítem aleatorio según la dificultad
+        function showRandomItem() {
+            let availableItems = [...items.easy];
+            
+            if (currentDifficulty === 'medium') {
+                availableItems = [...items.easy, ...items.medium];
+            } else if (currentDifficulty === 'hard') {
+                availableItems = [...items.easy, ...items.medium, ...items.hard];
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableItems.length);
+            currentItem = availableItems[randomIndex];
+            
+            // Mostrar la imagen
+            currentItemElement.src = currentItem.image;
+            currentItemElement.alt = currentItem.name;
+            currentItemElement.style.display = 'block';
+            
+            feedbackElement.textContent = `¿Dónde va ${currentItem.name}?`;
+            feedbackElement.className = 'feedback';
+            
+            nextBtn.disabled = true;
+        }
+
+        // Actualizar la barra de progreso
+        function updateProgressBar() {
+            const progress = (itemsCorrect / itemsPerLevel) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Actualizar el indicador de dificultad
+        function updateDifficultyIndicator() {
+            let text = '';
+            let className = '';
+            if (currentDifficulty === 'easy') {
+                text = 'Nivel: FÁCIL';
+                className = 'easy';
+            } else if (currentDifficulty === 'medium') {
+                text = 'Nivel: MEDIO';
+                className = 'medium';
+            } else {
+                text = 'Nivel: DIFÍCIL';
+                className = 'hard';
+            }
+            difficultyIndicator.textContent = text;
+            difficultyIndicator.className = 'difficulty-indicator ' + className;
+        }
+
+        // Iniciar el temporizador
+        function startTimer() {
+            // El tiempo disminuye según el nivel de dificultad
+            totalTime = currentDifficulty === 'easy' ? 5000 : 
+                        currentDifficulty === 'medium' ? 4000 : 3000;
+            timeLeft = totalTime;
+            updateTimer();
+            
+            timer = setInterval(() => {
+                timeLeft -= 100;
+                updateTimer();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    feedbackElement.textContent = `¡Tiempo! Era ${getBinName(currentItem.type)}`;
+                    feedbackElement.className = 'feedback incorrect';
+                    nextBtn.disabled = false;
+                    createConfetti(false);
+                }
+            }, 100);
+        }
+
+        // Actualizar la barra de tiempo
+        function updateTimer() {
+            const percentage = (timeLeft / totalTime) * 100;
+            timerBar.style.width = `${percentage}%`;
+            
+            // Cambiar color según el tiempo restante
+            if (percentage < 30) {
+                timerBar.style.background = 'linear-gradient(to right, #e74c3c, #c0392b)';
+            } else if (percentage < 60) {
+                timerBar.style.background = 'linear-gradient(to right, #f39c12, #e67e22)';
+            } else {
+                timerBar.style.background = 'linear-gradient(to right, #f1c40f, #f39c12)';
+            }
+        }
+
+        // Crear efecto de confeti
+        function createConfetti(isCorrect) {
+            const colors = isCorrect ? ['#2ecc71', '#27ae60', '#1abc9c'] : ['#e74c3c', '#c0392b', '#d35400'];
+            const container = isCorrect ? document.querySelector('.item-container') : document.querySelector('.feedback');
+            
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = confetti.style.width;
+                
+                document.body.appendChild(confetti);
+                
+                const animationDuration = Math.random() * 3 + 2;
+                
+                confetti.animate([
+                    { transform: `translate(${Math.random() * 200 - 100}px, ${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 1 },
+                    { opacity: 0 }
+                ], {
+                    duration: animationDuration * 1000,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.9, 1)'
+                });
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, animationDuration * 1000);
+            }
+        }
+
+        // Manejar la selección de contenedor
+        function handleBinSelection(selectedType) {
+            if (!gameActive) return;
+            
+            clearInterval(timer);
+            
+            // Animación del bote seleccionado
+            const selectedBin = document.querySelector(`.bin[data-type="${selectedType}"]`);
+            selectedBin.style.transform = 'translateY(-15px)';
+            setTimeout(() => {
+                selectedBin.style.transform = 'translateY(0)';
+            }, 300);
+            
+            if (selectedType === currentItem.type) {
+                // Correcto
+                feedbackElement.textContent = `¡CORRECTO! 🎉 ${currentItem.name} va en ${getBinName(currentItem.type)}`;
+                feedbackElement.className = 'feedback correct';
+                score += calculatePoints();
+                itemsCorrect++;
+                scoreElement.textContent = score;
+                createConfetti(true);
+                
+                // Animación del ítem hacia el bote
+                const binRect = selectedBin.getBoundingClientRect();
+                const itemRect = currentItemElement.getBoundingClientRect();
+                
+                currentItemElement.style.position = 'fixed';
+                currentItemElement.style.left = itemRect.left + 'px';
+                currentItemElement.style.top = itemRect.top + 'px';
+                currentItemElement.style.transition = 'all 0.5s cubic-bezier(0.5, -0.5, 0.5, 1.5)';
+                
+                setTimeout(() => {
+                    currentItemElement.style.left = binRect.left + binRect.width/2 - 50 + 'px';
+                    currentItemElement.style.top = binRect.top + binRect.height/2 - 50 + 'px';
+                    currentItemElement.style.transform = 'scale(0.5)';
+                    currentItemElement.style.opacity = '0.5';
+                }, 50);
+            } else {
+                // Incorrecto
+                feedbackElement.textContent = `¡OOPS! ❌ ${currentItem.name} va en ${getBinName(currentItem.type)}`;
+                feedbackElement.className = 'feedback incorrect';
+                createConfetti(false);
+            }
+            
+            nextBtn.disabled = false;
+            updateProgressBar();
+            
+            // Verificar si se completó el nivel
+            if (itemsCorrect >= itemsPerLevel) {
+                levelUp();
+            }
+        }
+
+        // Calcular puntos basados en la dificultad y tiempo restante
+        function calculatePoints() {
+            let basePoints = 100;
+            if (currentDifficulty === 'medium') basePoints = 150;
+            if (currentDifficulty === 'hard') basePoints = 200;
+            
+            const timeBonus = Math.floor((timeLeft / totalTime) * 100);
+            return basePoints + timeBonus;
+        }
+
+        // Subir de nivel
+        function levelUp() {
+            level++;
+            levelElement.textContent = level;
+            itemsCorrect = 0;
+            updateProgressBar();
+            
+            // Aumentar la dificultad
+            if (level >= 5 && level < 10) {
+                currentDifficulty = 'medium';
+            } else if (level >= 10) {
+                currentDifficulty = 'hard';
+            }
+            
+            // Aumentar la cantidad de ítems por nivel
+            if (level % 3 === 0 && itemsPerLevel < 8) {
+                itemsPerLevel++;
+            }
+            
+            updateDifficultyIndicator();
+            
+            // Mostrar mensaje de nuevo nivel
+            feedbackElement.textContent = `¡NIVEL ${level}! Dificultad: ${currentDifficulty.toUpperCase()}`;
+            feedbackElement.className = 'feedback';
+            
+            setTimeout(() => {
+                showRandomItem();
+                startTimer();
+            }, 2000);
+        }
+
+        // Obtener nombre del contenedor
+        function getBinName(type) {
+            switch(type) {
+                case 'organic': return 'el VERDE (orgánico)';
+                case 'recyclable': return 'el GRIS (reciclable)';
+                case 'trash': return 'el ROJO (basura)';
+                default: return 'algún contenedor';
+            }
+        }
+
+        // Finalizar el juego
+        function endGame() {
+            gameActive = false;
+            
+            // Actualizar record
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+            
+            gameContainer.style.display = 'none';
+            gameOverElement.style.display = 'block';
+            finalScoreElement.textContent = score;
+            finalLevelElement.textContent = level - 1;
+            
+            // Gran explosión de confeti al final
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    createConfetti(true);
+                }, i * 50);
+            }
+        }
+
+        // Event listeners
+        bins.forEach(bin => {
+            bin.addEventListener('click', () => {
+                handleBinSelection(bin.dataset.type);
+            });
+            
+            bin.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleBinSelection(bin.dataset.type);
+            });
+        });
+
+        nextBtn.addEventListener('click', () => {
+            // Resetear la posición del ítem
+            currentItemElement.style.position = '';
+            currentItemElement.style.left = '';
+            currentItemElement.style.top = '';
+            currentItemElement.style.transform = '';
+            currentItemElement.style.opacity = '';
+            currentItemElement.style.transition = '';
+            
+            showRandomItem();
+            startTimer();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            gameOverElement.style.display = 'none';
+            initGame();
+        });
+
+        // Iniciar el juego al cargar la página
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
